@@ -1,0 +1,22 @@
+default_packages:
+  - curl
+  - wget
+  - gnupg
+  - sudo
+  - iptables 
+  - tmux
+  - keepalived
+  - haproxy
+
+kubeadm_packages:
+  - kubeadm
+  - kubectl
+  - kubelet
+
+crio_version: "v1.33"
+
+crio_pre_packages:
+  - software-properties-common
+
+crio_common_packages:
+  - cri-o

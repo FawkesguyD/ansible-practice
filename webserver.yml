@@ -1,0 +1,5 @@
+- hosts: k8s_master
+  become: true
+  become_method: sudo
+  roles:
+    - k8s-nginx

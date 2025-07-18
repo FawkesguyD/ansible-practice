@@ -1,0 +1,11 @@
+- hosts: all
+  become: true
+  become_method: sudo
+  roles:
+  - cluster_setup
+
+- hosts: k8s_master
+  become: true
+  become_method: sudo
+  roles:
+  - cluster_init

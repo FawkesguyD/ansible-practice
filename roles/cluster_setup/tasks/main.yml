@@ -1,0 +1,12 @@
+- name: Install req packages 
+  ansible.builtin.apt:
+    name: "{{ default_packages }}" 
+
+- name: Kernel configuration
+  ansible.builtin.include_tasks: setup_kernel.yml
+
+- name: Kubeadm configuration
+  ansible.builtin.include_tasks: setup_kubeadm.yml
+
+- name: Cri-o configuration 
+  ansible.builtin.include_tasks: setup_crio.yml

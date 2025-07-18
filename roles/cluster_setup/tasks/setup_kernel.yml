@@ -1,0 +1,40 @@
+- name: Esure file /etc/modules-load.d/k8s.conf exist
+  ansible.builtin.copy:
+    dest: /etc/modules-load.d/k8s.conf 
+    content: |
+      overlay
+      br_netfilter
+    mode: '0644'
+
+- name: Load kernel module overlay
+  community.general.modprobe:
+    name: overlay
+    state: present
+    
+- name: Load kernel module br_netfilter
+  community.general.modprobe:
+    name: br_netfilter
+    state: present
+
+- name: Set sysctl parameters
+  ansible.posix.sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}" 
+    sysctl_set: true
+    state: present
+    reload: true
+  loop:
+    - {name: "net.bridge.bridge-nf-call-ip6tables", value: 1}
+    - {name: "net.bridge.bridge-nf-call-iptables", value: 1}
+    - {name: "net.ipv4.ip_forward",                value: 1} 
+
+- name: Dissable swap
+  ansible.builtin.command:
+    cmd: swapoff -a
+
+- name: Disable swap permanently (reboot)
+  replace:
+    path: /etc/fstab
+    regexp: '^(\s*)([^#\n]+\s+)(\w+\s+)swap(\s+.*)$'
+    replace: '#\1\2\3swap\4'
+    backup: true

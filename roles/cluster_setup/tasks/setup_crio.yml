@@ -1,0 +1,71 @@
+- name: Remove old CRI-O repository
+  ansible.builtin.file:
+    path: /etc/apt/sources.list.d/cri-o.list
+    state: absent
+
+- name: Remove CRI-O cache
+  ansible.builtin.command: |
+    rm -f /var/lib/apt/lists/download.opensuse.org*
+  ignore_errors: true
+  register: cleanup_apt_cache
+  changed_when: cleanup_apt_cache.rc == 0
+
+- name: Enable ‘universe’ repository (Ubuntu/Debian)
+  ansible.builtin.raw: |
+    add-apt-repository -y universe
+  when: ansible_facts['os_family'] == 'Debian'
+
+- name: Update apt cache after enabling new repo
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+  when: ansible_facts['os_family'] == 'Debian'
+
+- name: pre req package
+  ansible.builtin.apt:
+    name: "{{ crio_pre_packages }}"
+    state: present
+    update_cache: true
+
+- name: Download Cri-o signing key
+  ansible.builtin.apt_key:
+    url: https://download.opensuse.org/repositories/isv:/cri-o:/stable:/{{ crio_version }}/deb/Release.key 
+    state: present
+
+- name: Download cri-o repository
+  ansible.builtin.apt_repository:
+    repo: "deb https://download.opensuse.org/repositories/isv:/cri-o:/stable:/{{ crio_version }}/deb/ /"
+    filename: cri-o
+    state: present
+    update_cache: false
+
+- name: Update cache
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+  ignore_errors: true
+  register: apt_update
+  until: apt_update is succeeded
+  retries: 3
+  delay: 5
+
+- name: Common packages
+  ansible.builtin.apt:
+    name: "{{ crio_common_packages }}"
+    state: present
+    update_cache: true
+
+- name: Just force systemd to reread configs
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+  
+- name: Enable service cri-o and ensure it is not masked
+  ansible.builtin.systemd_service:
+    name: crio.service
+    enabled: true
+    masked: false
+
+- name: Start service cri-o
+  ansible.builtin.systemd_service:
+    state: started
+    name: crio.service

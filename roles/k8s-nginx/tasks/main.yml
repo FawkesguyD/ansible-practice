@@ -1,0 +1,21 @@
+- name: Create working directory
+  ansible.builtin.file:
+    path: /etc/kubernetes/manifests/nginx
+    state: directory
+    mode: '0755'
+
+- name: Copy file to workdir
+  ansible.builtin.copy:
+    src: "{{ item.file }}"
+    dest: "{{ workdir }}/nginx/{{ item.file }}"
+    owner: daniel
+    group: daniel
+    mode: '0755'
+  loop:
+  - file: "pod-nginx.yml"
+  - file: "service-nginx.yml"
+
+- name: Start nginx pod and service
+  ansible.builtin.command:
+    cmd: kubectl apply -f "{{ workdir }}/nginx/"
+

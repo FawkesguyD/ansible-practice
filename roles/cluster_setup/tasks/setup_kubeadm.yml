@@ -1,0 +1,24 @@
+- name: Ensure keyrings directory exist
+  ansible.builtin.file:
+    path: /etc/apt/keyrings/ 
+    state: directory
+    mode: '0755'
+
+- name: Download Kubernetes signing key
+  ansible.builtin.apt_key:
+    url: https://pkgs.k8s.io/core:/stable:/v1.32/deb/Release.key 
+    state: present
+
+- name: Download kubernetes repository
+  ansible.builtin.apt_repository: 
+    repo: deb https://pkgs.k8s.io/core:/stable:/v1.32/deb/ / 
+    filename: kubernetes 
+    state: present
+    update_cache: false
+      
+
+- name: Install req packages
+  ansible.builtin.apt:
+    name: "{{ kubeadm_packages }}"
+    state: present
+    update_cache: false
