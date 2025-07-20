@@ -1,5 +1,7 @@
-- hosts: k8s_master
+- hosts: masters
   become: true
   become_method: sudo
   roles:
     - k8s-nginx
+  tags:
+    - webserver

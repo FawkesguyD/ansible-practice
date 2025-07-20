@@ -3,9 +3,11 @@
   become_method: sudo
   roles:
   - cluster_setup
+  tags: [ setup, cluster_setup ]
 
-- hosts: k8s_master
+- hosts: masters
   become: true
   become_method: sudo
   roles:
   - cluster_init
+  tags: [ init, cluster_init ]

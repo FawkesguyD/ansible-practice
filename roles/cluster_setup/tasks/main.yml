@@ -1,12 +1,22 @@
-- name: Install req packages 
-  ansible.builtin.apt:
-    name: "{{ default_packages }}" 
+- name: Install common packages 
+  block:
+    - name: Combine all packages
+      set_fact:
+        packages: "{{ default_packages + extended_packages | default([]) }}"
+
+    - name: Installation of all packages
+      ansible.builtin.apt:
+        name: "{{ packages }}" 
+  tags: [ packages_install, common_packages ]
 
 - name: Kernel configuration
   ansible.builtin.include_tasks: setup_kernel.yml
+  tags: [ kernel_configuration ]
 
 - name: Kubeadm configuration
   ansible.builtin.include_tasks: setup_kubeadm.yml
+  tags: [ kubeadm_configuration ]
 
 - name: Cri-o configuration 
   ansible.builtin.include_tasks: setup_crio.yml
+  tags: [ crio_configuration ]

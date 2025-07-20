@@ -28,9 +28,14 @@
     - {name: "net.bridge.bridge-nf-call-iptables", value: 1}
     - {name: "net.ipv4.ip_forward",                value: 1} 
 
+- name: Check for swap to be on
+  shell: "swapon -s | wc -l"
+  register: number_of_swap
+  changed_when: false
+
 - name: Dissable swap
-  ansible.builtin.command:
-    cmd: swapoff -a
+  shell: swapoff -a
+  when: number_of_swap.stdout != 0
 
 - name: Disable swap permanently (reboot)
   replace:

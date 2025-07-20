@@ -1,0 +1,7 @@
+default_packages:
+  - curl
+  - wget
+  - gnupg
+  - sudo
+  - iptables 
+  - tmux

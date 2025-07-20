@@ -16,6 +16,8 @@
   - file: "service-nginx.yml"
 
 - name: Start nginx pod and service
-  ansible.builtin.command:
-    cmd: kubectl apply -f "{{ workdir }}/nginx/"
+  command: kubectl apply -f "{{ workdir }}/nginx/"
+  environment: 
+    KUBECONFIG: /etc/kubernetes/admin.conf
+
 

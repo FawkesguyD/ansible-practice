@@ -2,29 +2,66 @@
   stat:
     path: /etc/kubernetes/admin.conf
   register: k8s_init
+  delegate_to: k8s-master
+  run_once: true
 
 - name: Kubeadm init
-  command: kubeadm init --pod-network-cidr=10.244.0.0/16
+  command: kubeadm init --pod-network-cidr=10.244.0.0/16 --upload-certs
   when: not k8s_init.stat.exists
-  register: kubeadm_init
+  delegate_to: k8s-master
+  run_once: true
 
-- name: Add KUBECONFIG env to /etc/environment
-  ansible.builtin.lineinfile:
-    path: /etc/environment
-    line: export KUBECONFIG=/etc/kubernetes/admin.conf
-    create: true
+- name: Add workers
+  block:
+    - name: Check if worker already joined
+      stat:
+        path: /etc/kubernetes/kubelet.conf
+      register: kubelet_conf
+      delegate_to: "{{ item }}"
+      loop: "{{ groups['workers'] }}"
 
-- name: Export KUBECONFIG for current session
-  set_fact:
-    KUBECONFIG: /etc/kubernetes/admin.conf
+    - name: Create token for worker
+      command: kubeadm token create --print-join-command
+      register: token
+      delegate_to: k8s-master
+      run_once: true
+
+    - name: Join worker
+      command: "{{ token.stdout | trim }}"
+      delegate_to: "{{ item }}"     
+      loop: "{{ groups['workers'] }}"
+      loop_control:
+        index_var: kubelet
+      when: not kubelet_conf.results[kubelet].stat.exists
+
+- name: Configure kube directory for working with kubectl
+  block:
+    - name: Create dir ~/.kube
+      file:
+        path: "{{ HOME_DIR }}/.kube"
+        state: directory
+        owner: "{{ USER }}"
+        group: "{{ USER }}"
+        mode:  0700
+      delegate_to: "{{ delegate_host }}"
+
+    - name: Copy admin.conf to ~/.kube
+      copy:
+        src: "/etc/kubernetes/admin.conf"
+        dest: "{{ HOME_DIR }}/.kube/config"
+        remote_src: true
+        owner: "{{ USER }}"
+        group: "{{ USER }}"
+        mode: 0600
+      delegate_to: "{{ delegate_host }}"
+  vars:
+    USER: daniel 
+    HOME_DIR: "/home/{{ USER }}"
+    delegate_host: k8s-master
 
 - name: Apply flannel
   command: kubectl apply -f https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
-  when: not k8s_init.stat.exists
-
-
-- name: Enable execute worker nodes
-  command: kubectl taint nodes --all node-role.kubernetes.io/control-plane-
-  ignore_errors: true
-  when: not k8s_init.stat.exists
-
+  environment: 
+    KUBECONFIG: /etc/kubernetes/admin.conf 
+  delegate_to: k8s-master
+  run_once: true
