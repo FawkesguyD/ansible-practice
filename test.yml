@@ -1,8 +1,0 @@
-- hosts: all
-  become: true
-  become_method: sudo
-  tasks:
-    - name: Install packages
-      ansible.builtin.apt:
-        name: "{{ packages }}"
-      when: packages is defined
