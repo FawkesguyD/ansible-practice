@@ -4,4 +4,4 @@
 
 # Check cluster
 
-![cluster-init](./assets/cluster-init.png)
+![cluster-check](./assets/cluster-check.png)
