@@ -14,6 +14,7 @@
   loop:
   - file: "pod-nginx.yml"
   - file: "service-nginx.yml"
+  - file: "ingress-nginx.yml"
 
 - name: Start nginx pod and service
   command: kubectl apply -f "{{ workdir }}/nginx/"

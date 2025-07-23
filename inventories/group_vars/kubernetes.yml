@@ -1,0 +1,5 @@
+extended_packages:
+  - python3-openshift
+  - python3-yaml
+  - python3-jsonpatch
+  - python3-kubernetes 

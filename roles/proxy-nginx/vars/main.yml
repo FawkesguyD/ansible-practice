@@ -1,0 +1,14 @@
+# NETWORK
+ports:               [ "80:80" ]
+
+# POLICIES
+restart_policy:      always
+
+# CONTAINER
+container_image:     nginx:stable
+container_name:      proxy-nginx
+
+# PATH
+nginx_dir:           /etc/nginx
+server_path_conf:    "{{ nginx_dir }}/nginx.conf"
+container_path_conf: "{{ nginx_dir }}/nginx.conf"

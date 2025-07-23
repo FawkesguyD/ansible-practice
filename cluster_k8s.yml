@@ -1,13 +1,20 @@
-- hosts: all
+- hosts: kubernetes
   become: true
   become_method: sudo
   roles:
   - cluster_setup
-  tags: [ setup, cluster_setup ]
+  tags: [ setup, cluster_setup, kubernetes ]
 
 - hosts: masters
   become: true
   become_method: sudo
   roles:
   - cluster_init
-  tags: [ init, cluster_init ]
+  tags: [ init, cluster_init, kubernetes ]
+
+- hosts: masters
+  become: true
+  become_method: sudo
+  roles:
+  - ingress-nginx
+  tags: [ ingres_nginx ]

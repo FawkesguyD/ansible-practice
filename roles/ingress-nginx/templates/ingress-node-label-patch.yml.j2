@@ -1,0 +1,25 @@
+{# 
+  Найдём в списке nodes_list.resources все metadata.name,
+  у которых в статусе есть InternalIP == ingress_node_ip 
+#}
+{% set matches = nodes_list.resources
+   | json_query(
+       "[?status.addresses[?type=='InternalIP'].address=='"
+       ~ ingress_node_ip
+       ~ "'].metadata.name"
+     )
+%}
+
+{# Берём первый элемент списка или пустую строку #}
+{% set node_name = matches[0] if matches else '' %}
+
+{% if node_name == '' %}
+# Ни одна нода с InternalIP={{ ingress_node_ip }} не найдена!
+{% else %}
+apiVersion: v1
+kind: Node
+metadata:
+  name: {{ node_name }}
+  labels:
+    ingress-nginx: enabled
+{% endif %}

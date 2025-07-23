@@ -5,3 +5,5 @@ default_packages:
   - sudo
   - iptables 
   - tmux
+  - python3
+  - python3-pip

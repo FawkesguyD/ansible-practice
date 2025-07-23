@@ -1,7 +1,14 @@
+- hosts: bastion
+  become: true
+  become_method: sudo
+  roles:
+    - docker
+    - proxy-nginx
+  tags: [ webserver ]
+
 - hosts: masters
   become: true
   become_method: sudo
   roles:
-    - k8s-nginx
-  tags:
-    - webserver
+    - nginx-app
+  tags: [ webserver ]

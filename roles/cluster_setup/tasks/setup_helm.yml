@@ -1,0 +1,21 @@
+- name: Install helm
+  block:
+    - name: Download snap
+      apt:
+        name: snapd
+        state: present
+        update_cache: true
+      delegate_to: "{{ delegate_host }}"
+      run_once: true
+
+    - name: Install helm with snap
+      community.general.snap:
+        name: helm
+        classic: true 
+      delegate_to: "{{ delegate_host }}"
+      run_once: true
+  vars:
+    delegate_host: k8s-master
+  tags: [ helm_configuration ]
+
+

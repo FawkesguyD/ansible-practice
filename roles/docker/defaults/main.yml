@@ -1,0 +1,11 @@
+# DOCKER
+docker_gpg_key:    "https://download.docker.com/linux/ubuntu/gpg" 
+docker_repository: "deb https://download.docker.com/linux/ubuntu focal stable" 
+docker_packages:
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+  - docker-buildx-plugin
+  - docker-compose-plugin
+
+docker_service_name: docker.service

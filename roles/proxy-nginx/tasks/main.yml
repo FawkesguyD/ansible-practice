@@ -1,0 +1,29 @@
+- name: Create nginx directory
+  file:
+    path: "{{ nginx_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  tags: [ proxy ]
+
+- name: Copy nginx configuration file
+  copy:
+    src: nginx.conf
+    dest: "{{ server_path_conf }}"
+    owner: root
+    group: root
+    mode: '0700'
+  tags: [ proxy ]
+
+- name: Run docker container
+  docker_container:
+    name:  "{{ container_name }}"
+    image: "{{ container_image }}"
+    state: started
+    recreate: true
+    ports: "{{ ports }}"
+    restart_policy: "{{ restart_policy }}"
+    volumes:
+      - "{{ server_path_conf }}:{{ container_path_conf }}"
+  tags: [ proxy ]

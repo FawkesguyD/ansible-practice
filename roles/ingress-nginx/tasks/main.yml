@@ -1,0 +1,71 @@
+- name: Give label for ingress node
+  block:
+  - name: Create directory for configuration
+    file: 
+      path: "{{ k8s_ingress_manifest_path }}"
+      owner: root
+      group: root
+      mode: '0755'
+      state: directory
+
+  - name: Get a list of all nodes from any namespace
+    kubernetes.core.k8s_info:
+      api_version: v1
+      kind: Node
+      kubeconfig: "{{ k8s_config }}"
+    register: nodes_list
+
+  - name: Get node_name по InternalIP
+    template:
+      src: ingress-node-label-patch.yml.j2
+      dest: "{{ k8s_ingress_manifest_path }}/ingress-node-label-patch.yml"
+    vars:
+      ingress_node_ip: "172.16.10.12"
+      nodes_list: "{{ nodes_list }}"
+
+  - name: Add label to ingress node 
+    kubernetes.core.k8s:
+      state: present
+      src: "{{ k8s_ingress_manifest_path }}/ingress-node-label-patch.yml"
+      kubeconfig: "{{ k8s_config }}"
+  tags: [ ingress_nginx ]
+
+- name: Configure ingress 
+  block:
+  - name: Create workdir
+    file:
+      path: "{{ k8s_ingress_manifest_path }}" 
+      owner: root
+      group: root
+      state: directory
+      mode: '0755'
+
+  - name: Download manifest
+    get_url:
+      url: "{{ k8s_ingress_url }}" 
+      dest: "{{ k8s_ingress_manifest_path }}/ingress-nginx.yml"
+      mode: '0664'
+
+  - name: Deploy ingress nginx
+    kubernetes.core.k8s:
+      src: "{{ k8s_ingress_manifest_path }}/ingress-nginx.yml" 
+      state: present
+      kubeconfig: "{{ k8s_config }}"
+  tags: [ ingress_nginx ]
+
+- name: Apply patch for ingress
+  kubernetes.core.k8s_json_patch:
+    kubeconfig: "{{ k8s_config }}"
+    api_version: apps/v1
+    kind: Deployment
+    namespace: ingress-nginx
+    name: ingress-nginx-controller
+    patch:
+      - op: add
+        path: /spec/template/spec/nodeSelector
+        value:
+          ingress-ready: "true"
+      - op: add
+        path: /spec/template/spec/hostNetwork
+        value: true
+  tags: [ ingress_nginx ]

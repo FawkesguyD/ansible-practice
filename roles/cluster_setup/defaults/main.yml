@@ -1,3 +1,6 @@
+pip_packages:
+  - kubernetes
+
 kubeadm_packages:
   - kubeadm
   - kubectl

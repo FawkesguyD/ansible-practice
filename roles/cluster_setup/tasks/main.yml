@@ -1,12 +1,5 @@
-- name: Install common packages 
-  block:
-    - name: Combine all packages
-      set_fact:
-        packages: "{{ default_packages + extended_packages | default([]) }}"
-
-    - name: Installation of all packages
-      ansible.builtin.apt:
-        name: "{{ packages }}" 
+- name: Packages installation
+  ansible.builtin.include_tasks: setup_packages.yml
   tags: [ packages_install, common_packages ]
 
 - name: Kernel configuration
@@ -20,3 +13,7 @@
 - name: Cri-o configuration 
   ansible.builtin.include_tasks: setup_crio.yml
   tags: [ crio_configuration ]
+
+- name: Helm configuration
+  ansible.builtin.include_tasks: setup_helm.yml
+  tags: [ helm_configuration ]

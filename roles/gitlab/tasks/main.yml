@@ -1,0 +1,54 @@
+- name: Check if docker exist
+  block:
+    - name: Check for docker package
+      apt:
+        name: docker
+        state: present
+      register: docker_pkg
+    
+    - name: Start docker service
+      service:
+        name: docker
+        state: started
+      when: not docker_pkg.changed
+
+- name: Create gitlab directory
+  file:
+    path: "{{ item }}" 
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  loop:
+    - "{{ GITLAB_CONFIG_PATH }}"
+    - "{{ GITLAB_LOGS_PATH }}"
+    - "{{ GITLAB_DATA_PATH }}"
+
+- name: Add gitlab config to config dir
+  ansible.builtin.copy:
+    src: gitlab.rb
+    dest: "{{ GITLAB_CONFIG_PATH }}"
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Pull container image
+  ansible.builtin.docker_image:
+    name: "{{ container_image }}"
+    source: pull
+
+- name: Run docker container
+  ansible.builtin.docker_container:
+    name: "{{ container_name }}"
+    image: "{{ container_image }}"
+    state: started
+    env: "{{ env }}"
+    recreate: true
+    detach: true 
+    shm_size: "{{ shm_size }}"
+    restart_policy: "{{ restart_policy }}"
+    ports: "{{ ports }}"
+    volumes: "{{ volumes }}"
+  tags: [ gitlab_container ]
+    
+

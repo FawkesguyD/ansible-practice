@@ -1,0 +1,30 @@
+- name: Install common packages
+  apt:
+    name: "{{ default_packages + extended_packages | default([]) }}"
+    state: present
+    update_cache: true
+  tags: [ docker ]
+
+- name: Download docker gpg key
+  apt_key:
+    url: "{{ docker_gpg_key }}"
+    state: present
+  tags: [ docker ]
+
+- name: Download docker repository
+  ansible.builtin.apt_repository:
+    repo: "{{ docker_repository }}"
+    filename: docker
+    state: present
+    update_cache: false
+  tags: [ docker ]
+  
+- name: Install docker packages
+  ansible.builtin.apt:
+    name: "{{ docker_packages }}"
+    state: present
+    update_cache: true
+  notify: start_docker_service
+  tags: [ docker ]
+
+
